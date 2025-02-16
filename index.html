@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calcolatore Impronta Ecologica</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            text-align: center;
+            background: linear-gradient(to bottom, #8BC34A, #28bcbe); /* Verde più moderno */
+            color: #fff;
+            padding: 20px;
+            margin: 0; /* Rimuove il margine predefinito del body */
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh; /* Assicura che il footer sia sempre in basso */
+        }
+
+        .container {
+            max-width: 700px;
+            margin: 20px auto; /* Margine sopra e sotto, centrato */
+            background: #fff;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25); /* Ombra più intensa */
+            color: #333;
+            flex: 1; /* Permette al container di espandersi per riempire lo spazio disponibile */
+        }
+
+        .title {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            color: #4CAF50;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1); /* Leggera ombra sul testo */
+        }
+
+        .question {
+            margin: 25px 0; /* Spazio aumentato */
+            font-weight: 600; /* Più leggibile */
+            text-align: left; /* Allinea a sinistra le domande */
+        }
+
+        input {
+            width: calc(100% - 22px);
+            padding: 12px;
+            margin-top: 8px;
+            border: 2px solid #4CAF50;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s; /* Effetto di transizione sul bordo */
+        }
+
+        input:focus {
+            border-color: #388E3C; /* Verde più scuro al focus */
+            outline: none; /* Rimuove l'outline predefinito al focus */
+        }
+
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 16px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 18px;
+            width: 100%;
+            transition: background-color 0.3s, transform 0.2s; /* Transizione e animazione */
+        }
+
+        button:hover {
+            background-color: #388E3C;
+            transform: scale(1.03); /* Leggero ingrandimento al passaggio del mouse */
+        }
+
+        h2 {
+            margin-top: 30px;
+            color: #4CAF50;
+        }
+
+        .result {
+            font-size: 1.3em;
+            margin-top: 25px;
+            padding: 15px;
+            border-radius: 8px;
+            background-color: #E8F5E9;
+            color: #388E3C;
+            border: 1px solid #A5D6A7;
+        }
+
+        .chart-container {
+            margin-top: 40px;
+        }
+
+        .chart {
+            width: 100%;
+            max-width: 600px;
+            margin: auto;
+        }
+
+        .legend {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+            flex-wrap: wrap; /* Permette al legend di andare a capo su schermi piccoli */
+        }
+
+        .legend div {
+            display: flex;
+            align-items: center;
+            margin: 5px 15px;
+        }
+
+        .legend span {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            margin-right: 8px;
+            border-radius: 5px;
+        }
+
+        /* Definisci colori più chiari per le fasce */
+        .legend .green { background-color: #A5D6A7; }
+        .legend .yellow { background-color: #FFF59D; }
+        .legend .orange { background-color: #FFCC80; }
+        .legend .red { background-color: #EF9A9A; }
+        .legend .dark-red { background-color: #B71C1C; } /* Rosso molto scuro */
+
+        footer {
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            padding: 15px;
+            margin-top: 40px;
+        }
+
+        #impactTable {
+            width: 80%;
+            margin: 20px auto;
+            border-collapse: collapse;
+            display: none; /* Initially hidden */
+        }
+
+        #impactTable th, #impactTable td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        #impactTable th {
+            background-color: #f2f2f2;
+        }
+
+        #impactTable tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1 class="title">Calcola la tua Impronta Ecologica</h1>
+        <div id="quiz">
+            <div class="question"><p>Quante volte consumi carne a settimana (manzo, maiale, agnello)?</p><input type="number" id="meat" min="0" max="7"></div>
+            <div class="question"><p>Quanti chilometri percorri in auto, in media, ogni settimana?</p><input type="number" id="car" min="0"></div>
+            <div class="question"><p>Qual è il tuo consumo medio mensile di elettricità (kWh)?</p><input type="number" id="electricity" min="0"></div>
+            <div class="question"><p>Quanti litri di acqua consumi al giorno (in media)?</p><input type="number" id="water" min="0"></div>
+            <div class="question"><p>Quanto spesso utilizzi i mezzi pubblici rispetto all'auto? (0 = Mai, 1 = Occasionalmente, 2 = Frequentemente, 3 = Sempre)</p><input type="number" id="publicTransport" min="0" max="3"></div>
+            <div class="question"><p>Quanto spesso acquisti prodotti alimentari locali e biologici? (Scala da 0 a 10, dove 10 significa sempre)</p><input type="number" id="organic" min="0" max="10"></div>
+            <div class="question"><p>Quanti pasti consumi fuori casa ogni settimana? </p><input type="number" id="plastic" min="0"></div>
+            <div class="question"><p>La tua abitazione è dotata di pannelli solari?</p><select id="solar"><option value="0">No</option><option value="1">Sì</select></div>
+            <div class="question"><p>Quanti voli aerei (andata e ritorno) prendi, in media, ogni anno?</p><input type="number" id="flights" min="0"></div>
+            <div class="question"><p>Utilizzi principalmente lampadine a LED in casa?</p><select id="led"><option value="0">No</option><option value="1">Sì</select></div>
+            <button onclick="calculateFootprint()">Calcola la mia Impronta</button>
+        </div>
+        <h2 id="result"></h2>
+        <div class="chart-container">
+            <canvas id="scoreChart" class="chart"></canvas>
+            <div class="legend">
+                <div><span class="green"></span> Impronta Bassa</div>
+                <div><span class="yellow"></span> Moderata</div>
+                <div><span class="orange"></span> Alta</div>
+                <div><span class="red"></span> Molto Alta</div>
+                <div><span class="dark-red"></span> Critica</div>
+            </div>
+        </div>
+
+        <table id="impactTable">
+            <thead>
+                <tr>
+                    <th>Fattore</th>
+                    <th>Impatto Relativo</th>
+                    <th>Suggerimenti per la Riduzione</th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+
+    </div>
+    <footer>
+        <p>Questo calcolatore è uno strumento di sensibilizzazione. I risultati sono indicativi e non sostituiscono una valutazione professionale.</p>
+    </footer>
+    <script>
+        let myChart = null; // Variable to hold the chart instance
+
+        function calculateFootprint() {
+            let meat = parseInt(document.getElementById("meat").value) || 0;
+            let car = parseInt(document.getElementById("car").value) || 0;
+            let electricity = parseInt(document.getElementById("electricity").value) || 0;
+            let water = parseInt(document.getElementById("water").value) || 0;
+            let publicTransport = parseInt(document.getElementById("publicTransport").value) || 0;
+            let organic = parseInt(document.getElementById("organic").value) || 0;
+            let plastic = parseInt(document.getElementById("plastic").value) || 0;
+            let solar = parseInt(document.getElementById("solar").value) || 0;
+            let flights = parseInt(document.getElementById("flights").value) || 0;
+            let led = parseInt(document.getElementById("led").value) || 0;
+
+            // Calcolo del punteggio con pesi modificati (valori di esempio, da affinare)
+            let score = (meat * 12) + (car * 7) + (electricity * 1.5) + (water * 0.5) - (publicTransport * 8) - (organic * 3) + (plastic * 5) - (solar * 18) + (flights * 25) - (led * 6);
+
+            // **Fasce di punteggio ampliate e ricalibrate**
+            let message = "La tua impronta ecologica è di " + score.toFixed(0) + " punti. "; // Aggiunto toFixed per arrotondare
+
+            let category; // Store the category for the chart
+
+            if (score <= 400) {
+                message += "L'impatto è molto basso! Ottimo lavoro, continua così!";
+                category = "Bassa";
+            } else if (score <= 800) {
+                message += "Hai un'impronta ecologica moderata. Ci sono ancora aree di miglioramento!";
+                category = "Moderata";
+            } else if (score <= 1200) {
+                message += "La tua impronta è alta. Considera di adottare abitudini più sostenibili in diverse aree.";
+                category = "Alta";
+            } else if (score <= 1600) {
+                message += "L'impronta è molto alta! È importante agire in modo più deciso per ridurre il tuo impatto ambientale.";
+                category = "Molto Alta";
+            } else {
+                message += "L'impronta è critica! Sono necessari cambiamenti significativi e urgenti nel tuo stile di vita.";
+                category = "Critica";
+            }
+
+            document.getElementById("result").innerText = message;
+            updateChart(category); // Pass the category, not the score
+            generateImpactTable(meat, car, flights, electricity, water, publicTransport, organic, plastic, solar, led);
+        }
+
+        function updateChart(category) {
+            const ctx = document.getElementById('scoreChart').getContext('2d');
+
+             // Destroy existing chart if it exists
+            if (myChart) {
+                myChart.destroy();
+            }
+
+            const data = {
+                labels: ['Bassa', 'Moderata', 'Alta', 'Molto Alta', 'Critica'],
+                datasets: [{
+                    label: 'Livello di Impronta Ecologica',
+                    data: [
+                        category === 'Bassa' ? 1 : 0,
+                        category === 'Moderata' ? 1 : 0,
+                        category === 'Alta' ? 1 : 0,
+                        category === 'Molto Alta' ? 1 : 0,
+                        category === 'Critica' ? 1 : 0
+                    ], // Now it displays the score for the selected category.
+                    backgroundColor: ['#A5D6A7', '#FFF59D', '#FFCC80', '#EF9A9A', '#B71C1C'],
+                    borderWidth: 1,
+                    borderColor: '#795548',
+                    barPercentage: 0.7, // Larghezza delle barre
+                    categoryPercentage: 0.5 // Spazio tra le barre
+                }]
+            };
+            const options = {
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        display: false,
+                        max: 1 // Adjust the maximum value of the y-axis to display only one bar
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        enabled: false // Disable the tooltips
+                    }
+                }
+            };
+            myChart = new Chart(ctx, {
+                type: 'bar',
+                data: data,
+                options: options
+            });
+        }
+
+        function generateImpactTable(meat, car, flights, electricity, water, publicTransport, organic, plastic, solar, led) {
+            let tableBody = document.querySelector("#impactTable tbody");
+            tableBody.innerHTML = ""; // Clear previous content
+            let factors = []; // Array to store factors and their impact
+
+            factors.push({ factor: "Consumo di Carne", value: meat * 12, impact: "Alto", reduction: "Riduci la frequenza, scegli alternative vegetali, opta per carni sostenibili." });
+            factors.push({ factor: "Chilometri percorsi in Auto", value: car * 7, impact: "Alto", reduction: "Utilizza i mezzi pubblici, la bicicletta, cammina, condividi l'auto, scegli veicoli a basso consumo." });
+            factors.push({ factor: "Voli Aerei", value: flights * 25, impact: "Molto Alto", reduction: "Riduci il numero di voli, scegli voli diretti, compensa le emissioni." });
+            factors.push({ factor: "Consumo di Elettricità", value: electricity * 1.5, impact: "Medio", reduction: "Utilizza elettrodomestici efficienti, spegni le luci, passa a energia rinnovabile." });
+            factors.push({ factor: "Consumo di Acqua", value: water * 0.5, impact: "Basso", reduction: "Riduci il tempo sotto la doccia, ripara le perdite, utilizza elettrodomestici a basso consumo idrico." });
+            factors.push({ factor: "Utilizzo dei Mezzi Pubblici", value: publicTransport * -8, impact: "Positivo", reduction: "Utilizza i mezzi pubblici il più spesso possibile." });
+            factors.push({ factor: "Acquisto di prodotti locali/biologici", value: organic * -3, impact: "Positivo", reduction: "Acquista prodotti locali e biologici per ridurre l'impatto." });
+            factors.push({ factor: "Pasti fuori", value: plastic * 5, impact: "Medio", reduction: "Ridurre il numero di volte in cui si mangia fuori per ridurre gli sprechi." });
+            factors.push({ factor: "Pannelli solari", value: solar * -18, impact: "Positivo", reduction: "Considerare l'installazione di pannelli solari." });
+            factors.push({ factor: "Lampadine LED", value: led * -6, impact: "Positivo", reduction: "Sostituisci le lampadine tradizionali con LED." });
+
+           // Sort factors by impact (descending order)
+            factors.sort((a, b) => Math.abs(b.value) - Math.abs(a.value)); // Ordena per valore assoluto (in ordine decrescente)
+
+            // Create table rows for the top factors (e.g., top 5)
+            for (let i = 0; i < Math.min(5, factors.length); i++) {
+                let row = tableBody.insertRow();
+                let factorCell = row.insertCell();
+                let impactCell = row.insertCell();
+                let reductionCell = row.insertCell();
+
+                factorCell.innerText = factors[i].factor;
+                impactCell.innerText = factors[i].impact;
+                reductionCell.innerText = factors[i].reduction;
+            }
+
+            // Show the table
+            document.getElementById("impactTable").style.display = "table";
+        }
+    </script>
+</body>
+</html>
